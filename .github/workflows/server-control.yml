@@ -50,7 +50,11 @@ jobs:
 
             elif [ "$ACTION" = "stop" ]; then
               sudo systemctl stop glassfish
-              sudo systemctl is-inactive --quiet glassfish
+              STATE=$(sudo systemctl is-active glassfish || true)
+              if [ "$STATE" != "inactive" ]; then
+                echo "GlassFish did not stop. Current state: $STATE"
+                exit 1
+              fi
 
             elif [ "$ACTION" = "restart" ]; then
               sudo systemctl restart glassfish
