@@ -12,14 +12,18 @@ on:
           - start
           - stop
           - restart
+          - vm-start
+          - vm-stop
+          - vm-restart
 
 jobs:
   server-control:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Control StudentShare server
+      - name: Control StudentShare
         uses: appleboy/ssh-action@v1.2.2
+        if: ${{ inputs.action == 'deploy' || inputs.action == 'start' || inputs.action == 'stop' || inputs.action == 'restart' }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -33,15 +37,11 @@ jobs:
 
             if [ "$ACTION" = "deploy" ]; then
               cd /home/ubuntu/StudentShare
-
               git fetch origin
               git reset --hard origin/main
-
               mvn clean package -DskipTests
-
               sudo cp target/StudentShare.war /opt/glassfish7/glassfish/domains/domain1/autodeploy/StudentShare.war
               sudo systemctl restart glassfish
-
               sudo systemctl is-active --quiet glassfish
 
             elif [ "$ACTION" = "start" ]; then
@@ -51,6 +51,7 @@ jobs:
             elif [ "$ACTION" = "stop" ]; then
               sudo systemctl stop glassfish
               STATE=$(sudo systemctl is-active glassfish || true)
+
               if [ "$STATE" != "inactive" ]; then
                 echo "GlassFish did not stop. Current state: $STATE"
                 exit 1
@@ -59,10 +60,60 @@ jobs:
             elif [ "$ACTION" = "restart" ]; then
               sudo systemctl restart glassfish
               sudo systemctl is-active --quiet glassfish
-
-            else
-              echo "Invalid action: $ACTION"
-              exit 1
             fi
 
-            echo "StudentShare server action '$ACTION' completed successfully."
+            echo "GlassFish action '$ACTION' completed successfully."
+
+      - name: Install OCI CLI
+        if: ${{ inputs.action == 'vm-start' || inputs.action == 'vm-stop' || inputs.action == 'vm-restart' }}
+        run: |
+          python3 -m pip install --upgrade oci-cli
+
+      - name: Configure OCI CLI
+        if: ${{ inputs.action == 'vm-start' || inputs.action == 'vm-stop' || inputs.action == 'vm-restart' }}
+        env:
+          OCI_API_KEY: ${{ secrets.OCI_API_KEY }}
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+        run: |
+          mkdir -p ~/.oci
+
+          printf '%s\n' "$OCI_API_KEY" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=$OCI_USER_OCID
+          fingerprint=$OCI_FINGERPRINT
+          tenancy=$OCI_TENANCY_OCID
+          region=$OCI_REGION
+          key_file=/home/runner/.oci/oci_api_key.pem
+          EOF
+
+      - name: Control Oracle VM
+        if: ${{ inputs.action == 'vm-start' || inputs.action == 'vm-stop' || inputs.action == 'vm-restart' }}
+        env:
+          OCI_INSTANCE_OCID: ${{ secrets.OCI_INSTANCE_OCID }}
+        run: |
+          set -e
+
+          ACTION="${{ inputs.action }}"
+
+          if [ "$ACTION" = "vm-start" ]; then
+            OCI_ACTION="START"
+          elif [ "$ACTION" = "vm-stop" ]; then
+            OCI_ACTION="SOFTSTOP"
+          elif [ "$ACTION" = "vm-restart" ]; then
+            OCI_ACTION="RESET"
+          else
+            echo "Invalid VM action"
+            exit 1
+          fi
+
+          oci compute instance action \
+            --instance-id "$OCI_INSTANCE_OCID" \
+            --action "$OCI_ACTION"
+
+          echo "Oracle VM action '$OCI_ACTION' completed successfully."
