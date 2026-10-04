@@ -1,0 +1,39 @@
+name: Deploy StudentShare
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Oracle Cloud
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+
+            cd /home/ubuntu
+
+            if [ ! -d StudentShare/.git ]; then
+              rm -rf StudentShare
+              git clone https://github.com/Sachin965-SCMS/StudentShare.git StudentShare
+            else
+              cd StudentShare
+              git fetch origin
+              git reset --hard origin/main
+            fi
+
+            cd /home/ubuntu/StudentShare
+
+            mvn clean package -DskipTests
+
+            sudo cp target/StudentShare.war /opt/glassfish7/glassfish/domains/domain1/autodeploy/StudentShare.war
+
+            sudo systemctl restart glassfish
