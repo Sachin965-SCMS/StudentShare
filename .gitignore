@@ -1,0 +1,32 @@
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+
+# Maven
+/target/
+
+# Compiled files
+*.class
+
+# WAR files
+*.war
+
+# IDE files
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Private keys
+*.key
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db

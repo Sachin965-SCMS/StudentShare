@@ -1,0 +1,23 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 24-Sept-2026, 8:29:29 pm
+    Author     : Sachin Bobin
+*/
+
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { background: #f4f7f6; margin: 0; }
+.navbar { background: #003366; color: white; padding: 15px 30px; display: flex; justify-content: space-between; }
+.navbar a { color: white; text-decoration: none; margin-left: 15px; }
+.container { width: 80%; margin: 30px auto; }
+.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+input, select, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+button { background: #003366; color: white; border: none; cursor: pointer; }
+button:hover { background: #00509e; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #003366; color: white; }
+.flex-grid { display: flex; gap: 20px; }
+.flex-grid > div { flex: 1; }

@@ -1,0 +1,3 @@
+package com.notesshared.servlet;
+import jakarta.servlet.annotation.WebServlet;import jakarta.servlet.http.*;import java.io.*;
+@WebServlet("/app") public class BootstrapRedirectServlet extends HttpServlet{protected void doGet(HttpServletRequest r,HttpServletResponse s)throws IOException{HttpSession h=r.getSession(false);if(h==null||h.getAttribute("role")==null){s.sendRedirect(r.getContextPath()+"/login.jsp");return;}switch(String.valueOf(h.getAttribute("role"))){case "ADMIN"->s.sendRedirect(r.getContextPath()+"/admin/dashboard");case "SUPERVISOR"->s.sendRedirect(r.getContextPath()+"/supervisor/dashboard");default->s.sendRedirect(r.getContextPath()+"/student/dashboard");}}}

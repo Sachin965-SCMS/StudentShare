@@ -1,0 +1,2 @@
+package com.notesshared.model;
+public class Course{private int id,collegeId,semesterCount;private String code,name;public int getId(){return id;}public void setId(int v){id=v;}public int getCollegeId(){return collegeId;}public void setCollegeId(int v){collegeId=v;}public String getCode(){return code;}public void setCode(String v){code=v;}public String getName(){return name;}public void setName(String v){name=v;}public int getSemesterCount(){return semesterCount;}public void setSemesterCount(int v){semesterCount=v;}}

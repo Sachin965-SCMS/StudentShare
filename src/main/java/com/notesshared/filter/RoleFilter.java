@@ -1,0 +1,3 @@
+package com.notesshared.filter;
+import jakarta.servlet.*;import jakarta.servlet.http.*;import java.io.*;
+public class RoleFilter implements Filter{public void doFilter(ServletRequest a,ServletResponse b,FilterChain c)throws IOException,ServletException{HttpServletRequest r=(HttpServletRequest)a;HttpServletResponse s=(HttpServletResponse)b;String role=String.valueOf(r.getSession().getAttribute("role"));String path=r.getRequestURI().substring(r.getContextPath().length());boolean ok=(path.startsWith("/admin/")&&role.equals("ADMIN"))||(path.startsWith("/student/")&&role.equals("STUDENT"))||(path.startsWith("/supervisor/")&&role.equals("SUPERVISOR"));if(!ok){s.sendError(403,"You do not have permission to access this page.");return;}c.doFilter(a,b);}}
