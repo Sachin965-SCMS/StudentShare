@@ -1,0 +1,57 @@
+name: StudentShare Server Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose what to do with the StudentShare server"
+        required: true
+        type: choice
+        options:
+          - deploy
+          - start
+          - stop
+          - restart
+
+jobs:
+  server-control:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Control StudentShare server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+
+            ACTION="${{ inputs.action }}"
+
+            if [ "$ACTION" = "deploy" ]; then
+              cd /home/ubuntu/StudentShare
+
+              git fetch origin
+              git reset --hard origin/main
+
+              mvn clean package -DskipTests
+
+              sudo cp target/StudentShare.war /opt/glassfish7/glassfish/domains/domain1/autodeploy/StudentShare.war
+              sudo systemctl restart glassfish
+
+            elif [ "$ACTION" = "start" ]; then
+              sudo systemctl start glassfish
+
+            elif [ "$ACTION" = "stop" ]; then
+              sudo systemctl stop glassfish
+
+            elif [ "$ACTION" = "restart" ]; then
+              sudo systemctl restart glassfish
+
+            else
+              echo "Invalid action: $ACTION"
+              exit 1
+            fi
+
+            sudo systemctl is-active glassfish
